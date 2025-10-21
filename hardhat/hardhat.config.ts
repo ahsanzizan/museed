@@ -13,6 +13,10 @@ const config: HardhatUserConfig = {
     localhost: {
       url: "http://127.0.0.1:8545",
     },
+    polygon: {
+      url: process.env.POLYGON_RPC_URL || "https://80001.rpc.thirdweb.com",
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+    },
   },
 };
 
