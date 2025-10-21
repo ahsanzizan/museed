@@ -69,7 +69,7 @@ describe("MuseedNFT", function () {
         museedNFT
           .connect(artist)
           .mintTrack(artist.address, TRACK_URI, TRACK_PRICE)
-      ).to.be.revertedWithCustomError(museedNFT, "OwnableUnauthorizedAccount");
+      ).to.be.revertedWith("Ownable: caller is not the owner");
     });
   });
 
