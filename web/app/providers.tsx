@@ -5,14 +5,13 @@ import "@rainbow-me/rainbowkit/styles.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { WagmiProvider, createConfig, http } from "wagmi";
-import { baseSepolia } from "wagmi/chains";
+import { sepolia } from "wagmi/chains"; 
 
 const config = createConfig({
-  chains: [baseSepolia],
+  chains: [sepolia], 
   transports: {
-    [baseSepolia.id]: http(
-      process.env.NEXT_PUBLIC_BASE_SEPOLIA_RPC_URL ||
-        "https://base-sepolia.g.alchemy.com/v2/YOUR_ALCHEMY_KEY"
+    [sepolia.id]: http(
+      process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL
     ),
   },
 });
