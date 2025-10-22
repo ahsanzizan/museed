@@ -6,6 +6,7 @@ export const CHAIN_ID = Number.parseInt(process.env.NEXT_PUBLIC_CHAIN_ID || "800
 export const SUPPORTED_CHAINS = {
   POLYGON_MUMBAI: 80001,
   BASE_SEPOLIA: 84532,
+  SEPOLIA: 11155111,
 }
 
 export const CHAIN_CONFIG = {
@@ -18,5 +19,10 @@ export const CHAIN_CONFIG = {
     name: "Base Sepolia",
     rpcUrl: "https://sepolia.base.org",
     blockExplorer: "https://sepolia.basescan.org",
+  },
+  [SUPPORTED_CHAINS.SEPOLIA]: {
+    name: "Ethereum Sepolia",
+    rpcUrl: process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL || "https://rpc.sepolia.org",
+    blockExplorer: "https://sepolia.etherscan.io",
   },
 }
