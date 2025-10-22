@@ -1,55 +1,68 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useAccount, useContractWrite, useWaitForTransactionReceipt } from "wagmi"
-import { MUSEED_CONTRACT_ADDRESS } from "@/lib/config"
-import MuseedNFTABI from "@/lib/MuseedNFT.json"
-import { uploadToPinata, uploadMetadataToPinata } from "@/lib/pinata"
-import { parseEther } from "@/lib/utils"
-import { handleIPFSError } from "@/lib/error-handler"
-import type { UploadFormData, TrackMetadata } from "@/types"
+import {
+  uploadFileToPinata,
+  uploadMetadataToPinata,
+} from "@/lib/actions/pinata-actions";
+import { MUSEED_CONTRACT_ADDRESS } from "@/lib/config";
+import { handleIPFSError } from "@/lib/error-handler";
+import MuseedNFTABI from "@/lib/MuseedNFT.json";
+import { parseEther } from "@/lib/utils";
+import type { TrackMetadata, UploadFormData } from "@/types";
+import { useState } from "react";
+import {
+  useAccount,
+  useContractWrite,
+  useWaitForTransactionReceipt,
+} from "wagmi";
 
 export function useMintTrack() {
-  const { address } = useAccount()
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const [error, setError] = useState<string | null>(null)
+  const { address } = useAccount();
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
-  const { data: hash, isPending, writeContract } = useContractWrite()
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
+  const { data: hash, writeContract } = useContractWrite();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
+    hash,
+  });
 
   const mintTrack = async (formData: UploadFormData) => {
     if (!address) {
-      setError("Wallet not connected")
-      return
+      setError("Wallet not connected");
+      return;
     }
 
     if (!formData.audioFile || !formData.coverFile) {
-      setError("Audio and cover files are required")
-      return
+      setError("Audio and cover files are required");
+      return;
     }
 
     try {
-      setIsUploading(true)
-      setError(null)
-      setUploadProgress(0)
+      setIsUploading(true);
+      setError(null);
+      setUploadProgress(0);
 
       // Validate file sizes
-      const MAX_FILE_SIZE = 100 * 1024 * 1024 // 100MB
+      const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
       if (formData.audioFile.size > MAX_FILE_SIZE) {
-        throw new Error("Audio file is too large (max 100MB)")
+        throw new Error("Audio file is too large (max 100MB)");
       }
       if (formData.coverFile.size > 10 * 1024 * 1024) {
-        throw new Error("Cover art is too large (max 10MB)")
+        throw new Error("Cover art is too large (max 10MB)");
       }
 
-      // Upload audio file to IPFS
-      setUploadProgress(25)
-      const audioHash = await uploadToPinata(formData.audioFile)
+      // Upload audio file to IPFS via server action
+      setUploadProgress(25);
+      const audioFormData = new FormData();
+      audioFormData.append("file", formData.audioFile);
+      const audioHash = await uploadFileToPinata(audioFormData);
 
-      // Upload cover art to IPFS
-      setUploadProgress(50)
-      const coverHash = await uploadToPinata(formData.coverFile)
+      // Upload cover art to IPFS via server action
+      setUploadProgress(50);
+      const coverFormData = new FormData();
+      coverFormData.append("file", formData.coverFile);
+      const coverHash = await uploadFileToPinata(coverFormData);
 
       // Create metadata JSON
       const metadata: TrackMetadata = {
@@ -61,31 +74,32 @@ export function useMintTrack() {
           { trait_type: "Artist", value: formData.artist },
           { trait_type: "Genre", value: formData.genre },
         ],
-      }
+      };
 
-      // Upload metadata to IPFS
-      setUploadProgress(75)
-      const metadataUri = await uploadMetadataToPinata(metadata)
+      // Upload metadata to IPFS via server action
+      setUploadProgress(75);
+      const metadataUri = await uploadMetadataToPinata(metadata);
 
       // Parse price to wei
-      const priceInWei = parseEther(formData.price)
+      const priceInWei = parseEther(formData.price);
 
       // Call contract to mint track
-      setUploadProgress(90)
+      setUploadProgress(90);
       writeContract({
         address: MUSEED_CONTRACT_ADDRESS as `0x${string}`,
         abi: MuseedNFTABI.abi,
         functionName: "mintTrack",
         args: [address, metadataUri, priceInWei],
-      })
+      });
 
-      setUploadProgress(100)
+      setUploadProgress(100);
     } catch (err) {
-      const errorMessage = err instanceof Error ? handleIPFSError(err) : "Upload failed"
-      setError(errorMessage)
-      setIsUploading(false)
+      const errorMessage =
+        err instanceof Error ? handleIPFSError(err) : "Upload failed";
+      setError(errorMessage);
+      setIsUploading(false);
     }
-  }
+  };
 
   return {
     mintTrack,
@@ -95,5 +109,5 @@ export function useMintTrack() {
     isSuccess,
     error,
     hash,
-  }
+  };
 }

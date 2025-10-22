@@ -1,8 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { usePublicClient } from "wagmi";
-import Link from "next/link";
 import { ConnectWallet } from "@/components/ConnectWallet";
 import { TrackCard } from "@/components/TrackCard";
 import { Button } from "@/components/ui/button";
@@ -10,6 +7,9 @@ import { MUSEED_CONTRACT_ADDRESS } from "@/lib/config";
 import MuseedNFTABI from "@/lib/MuseedNFT.json";
 import { getIPFSUrl } from "@/lib/pinata";
 import type { Track, TrackMetadata } from "@/types";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { usePublicClient } from "wagmi";
 
 export default function HomePage() {
   const publicClient = usePublicClient();

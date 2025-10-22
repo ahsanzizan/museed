@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import Image from "next/image"
-import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { formatEther } from "@/lib/utils"
-import { getIPFSUrl } from "@/lib/pinata"
-import type { Track } from "@/types"
+import Image from "next/image";
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { formatEther } from "@/lib/utils";
+import { getIPFSUrl } from "@/lib/pinata";
+import type { Track } from "@/types";
 
 interface OwnedTracksListProps {
-  tracks: (Track & { purchasePrice: bigint })[]
+  tracks: (Track & { purchasePrice: bigint })[];
 }
 
 export function OwnedTracksList({ tracks }: OwnedTracksListProps) {
@@ -20,11 +20,15 @@ export function OwnedTracksList({ tracks }: OwnedTracksListProps) {
       </CardHeader>
       <CardContent>
         {tracks.length === 0 ? (
-          <p className="text-muted-foreground">You haven't purchased any tracks yet.</p>
+          <p className="text-muted-foreground">
+            You haven't purchased any tracks yet.
+          </p>
         ) : (
           <div className="space-y-4">
             {tracks.map((track) => {
-              const coverUrl = track.metadata?.image ? getIPFSUrl(track.metadata.image) : "/music-cover.jpg"
+              const coverUrl = track.metadata?.image
+                ? getIPFSUrl(track.metadata.image)
+                : "/music-cover.jpg";
 
               return (
                 <div
@@ -41,29 +45,40 @@ export function OwnedTracksList({ tracks }: OwnedTracksListProps) {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold truncate">{track.metadata?.name || "Untitled"}</h3>
+                    <h3 className="font-semibold truncate">
+                      {track.metadata?.name || "Untitled"}
+                    </h3>
                     <p className="text-sm text-muted-foreground truncate">
-                      {track.metadata?.attributes?.[0]?.value || "Unknown Artist"}
+                      {track.metadata?.attributes?.[0]?.value ||
+                        "Unknown Artist"}
                     </p>
                     <div className="flex gap-4 mt-2 text-sm">
                       <div>
-                        <span className="text-muted-foreground">Purchased: </span>
-                        <span className="font-medium">{formatEther(track.purchasePrice)} MATIC</span>
+                        <span className="text-muted-foreground">
+                          Purchased:{" "}
+                        </span>
+                        <span className="font-medium">
+                          {formatEther(track.purchasePrice)} MATIC
+                        </span>
                       </div>
                     </div>
                   </div>
 
                   <Link href={`/track/${track.tokenId}`}>
-                    <Button variant="outline" size="sm" className="flex-shrink-0 bg-transparent">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-shrink-0 bg-transparent"
+                    >
                       Play
                     </Button>
                   </Link>
                 </div>
-              )
+              );
             })}
           </div>
         )}
       </CardContent>
     </Card>
-  )
+  );
 }
