@@ -35,7 +35,8 @@ export function useFanTracks() {
               { type: "uint256", indexed: false, name: "price" },
             ],
           },
-          fromBlock: 0n,
+          fromBlock: 9466398n,
+          toBlock: 9466403n,
         });
 
         // Filter for current user

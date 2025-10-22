@@ -35,7 +35,8 @@ export function useArtistTracks() {
               { type: "uint256", indexed: false, name: "price" },
             ],
           },
-          fromBlock: 0n,
+          fromBlock: 9466275n,
+          toBlock: 9466280n,
         });
 
         // Filter for current artist
