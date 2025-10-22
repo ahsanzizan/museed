@@ -1,0 +1,109 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 240 15% 6%;
+    --foreground: 240 5% 96%;
+
+    --card: 240 12% 10%;
+    --card-foreground: 240 5% 96%;
+
+    --popover: 240 12% 10%;
+    --popover-foreground: 240 5% 96%;
+
+    --primary: 280 80% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 320 70% 55%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 240 10% 20%;
+    --muted-foreground: 240 5% 65%;
+
+    --accent: 200 95% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 10% 18%;
+    --input: 240 10% 18%;
+    --ring: 280 80% 60%;
+
+    --radius: 0.75rem;
+
+    /* Custom tokens for music marketplace */
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(280 80% 60%),
+      hsl(320 70% 55%)
+    );
+    --gradient-accent: linear-gradient(
+      135deg,
+      hsl(200 95% 50%),
+      hsl(280 80% 60%)
+    );
+    --gradient-card: linear-gradient(
+      135deg,
+      hsl(240 12% 10% / 0.8),
+      hsl(240 12% 12% / 0.6)
+    );
+
+    --glow-primary: 0 0 40px hsl(280 80% 60% / 0.3);
+    --glow-accent: 0 0 30px hsl(200 95% 50% / 0.25);
+
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+      sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI",
+      sans-serif;
+  }
+}
+
+@layer components {
+  .gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .nft-card-hover {
+    transition: var(--transition-smooth);
+  }
+
+  .nft-card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--glow-primary);
+  }
+}

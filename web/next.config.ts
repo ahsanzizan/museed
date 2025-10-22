@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "10mb",
     },
   },
+  images: {
+    remotePatterns: [new URL("https://gateway.pinata.cloud/ipfs/**")],
+  },
 };
 
 export default nextConfig;
