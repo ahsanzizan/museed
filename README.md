@@ -1,4 +1,4 @@
-# Museed 🎹
+# Museed
 
 **A decentralized music platform built on the blockchain, empowering artists and fans.**
 
@@ -8,7 +8,7 @@ The core focus of this MVP is to build a working proof of concept demonstrating 
 
 ---
 
-## 🚀 Core Features
+## Core Features
 
 - **Artist Tokenization:** Artists can connect a wallet (e.g., MetaMask), upload their audio file and cover art, and mint their track as a unique **ERC-721 NFT**.
 - **Verifiable Fan Ownership:** Fans can browse and purchase tokenized music tracks. Upon purchase, the NFT is immediately transferred to their wallet, granting provable ownership.
@@ -32,7 +32,7 @@ The core focus of this MVP is to build a working proof of concept demonstrating 
 
 ---
 
-## 💻 Technical Stack
+## Technical Stack
 
 This project integrates modern web3 and web2 technologies:
 
