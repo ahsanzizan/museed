@@ -5,7 +5,12 @@ import { useAccount, usePublicClient } from "wagmi";
 import { MUSEED_CONTRACT_ADDRESS } from "@/lib/config";
 import MuseedNFTABI from "@/lib/MuseedNFT.json";
 import { getIPFSUrl } from "@/lib/pinata";
-import type { Track, TrackMetadata } from "@/types";
+import type {
+  NftApiResponse,
+  TokenTransferResponse,
+  Track,
+  TrackMetadata,
+} from "@/types";
 
 export function useArtistTracks() {
   const { address } = useAccount();
@@ -24,30 +29,52 @@ export function useArtistTracks() {
         setError(null);
 
         // Get all TrackMinted events where artist is the current user
-        const logs = await publicClient.getLogs({
-          address: MUSEED_CONTRACT_ADDRESS as `0x${string}`,
-          event: {
-            type: "event",
-            name: "TrackMinted",
-            inputs: [
-              { type: "uint256", indexed: true, name: "tokenId" },
-              { type: "address", indexed: true, name: "artist" },
-              { type: "uint256", indexed: false, name: "price" },
-            ],
-          },
-          fromBlock: 9466275n,
-          toBlock: 9466280n,
-        });
+        // const logs = await publicClient.getLogs({
+        //   address: MUSEED_CONTRACT_ADDRESS as `0x${string}`,
+        //   event: {
+        //     type: "event",
+        //     name: "TrackMinted",
+        //     inputs: [
+        //       { type: "uint256", indexed: true, name: "tokenId" },
+        //       { type: "address", indexed: true, name: "artist" },
+        //       { type: "uint256", indexed: false, name: "price" },
+        //     ],
+        //   },
+        //   fromBlock: 9466275n,
+        //   toBlock: 9466280n,
+        // });
+        const tracki: TokenTransferResponse = await (
+          await fetch(`${process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              jsonrpc: "2.0",
+              id: 0,
+              method: "alchemy_getAssetTransfers",
+              params: [
+                {
+                  fromBlock: "0x0",
+
+                  fromAddress: "0x0000000000000000000000000000000000000000",
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  toAddress: address,
+
+                  excludeZeroValue: true,
+
+                  category: ["erc721", "erc1155"],
+                },
+              ],
+            }),
+          })
+        ).json();
 
         // Filter for current artist
-        const artistLogs = logs.filter((log) => {
-          const artist = `0x${log.topics[2]?.slice(-40)}`;
-          return artist.toLowerCase() === address.toLowerCase();
-        });
+        const artistLogs = tracki.result.transfers;
 
         // Fetch details for each track
         const trackPromises = artistLogs.map(async (log) => {
-          const tokenId = Number((log.topics[1] || "0x0").slice(0, 66));
+          const tokenId = Number((log.tokenId || "0x0").slice(0, 66));
 
           try {
             const result = await publicClient.readContract({
@@ -61,7 +88,7 @@ export function useArtistTracks() {
               string,
               bigint,
               string,
-              string
+              string,
             ];
 
             // Fetch artist earnings
@@ -95,14 +122,14 @@ export function useArtistTracks() {
             console.error(
               "Failed to fetch track details for token",
               tokenId,
-              err
+              err,
             );
             return null;
           }
         });
 
         const fetchedTracks = (await Promise.all(trackPromises)).filter(
-          (t) => t !== null
+          (t) => t !== null,
         ) as (Track & {
           earnings: bigint;
         })[];
@@ -111,7 +138,7 @@ export function useArtistTracks() {
         // Calculate total earnings
         const total = fetchedTracks.reduce(
           (sum, track) => sum + track.earnings,
-          0n
+          0n,
         );
         setTotalEarnings(total);
       } catch (err) {

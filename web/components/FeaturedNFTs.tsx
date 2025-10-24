@@ -27,24 +27,29 @@ const FeaturedNFTs = () => {
         setError(null);
 
         // Get all TrackMinted events
-        const logs = await publicClient.getLogs({
-          address: MUSEED_CONTRACT_ADDRESS as `0x${string}`,
-          event: {
-            type: "event",
-            name: "TrackMinted",
-            inputs: [
-              { type: "uint256", indexed: true, name: "tokenId" },
-              { type: "address", indexed: true, name: "artist" },
-              { type: "uint256", indexed: false, name: "price" },
-            ],
-          },
-          fromBlock: 9466275n,
-          toBlock: 9466280n,
-        });
+        // const logs = await publicClient.getLogs({
+        //   address: MUSEED_CONTRACT_ADDRESS as `0x${string}`,
+        //   event: {
+        //     type: "event",
+        //     name: "TrackMinted",
+        //     inputs: [
+        //       { type: "uint256", indexed: true, name: "tokenId" },
+        //       { type: "address", indexed: true, name: "artist" },
+        //       { type: "uint256", indexed: false, name: "price" },
+        //     ],
+        //   },
+        //   fromBlock: 9466275n,
+        //   toBlock: 9466280n,
+        // });
+        const tracki: { nfts: { id: { tokenId: string } }[] } = await (
+          await fetch(
+            `${process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL}/getNFTsForCollection?limit=4&contractAddress=${MUSEED_CONTRACT_ADDRESS}`,
+          )
+        ).json();
 
         // Fetch details for each track
-        const trackPromises = logs.map(async (log) => {
-          const tokenId = Number((log.topics[1] || "0x0").slice(0, 66));
+        const trackPromises = tracki.nfts.map(async (log) => {
+          const tokenId = Number((log.id.tokenId || "0x0").slice(0, 66));
 
           try {
             const result = await publicClient.readContract({
@@ -58,7 +63,7 @@ const FeaturedNFTs = () => {
               string,
               bigint,
               string,
-              string
+              string,
             ];
 
             // Fetch metadata from IPFS
@@ -83,14 +88,14 @@ const FeaturedNFTs = () => {
             console.error(
               "Failed to fetch track details for token",
               tokenId,
-              err
+              err,
             );
             return null;
           }
         });
 
         const fetchedTracks = (await Promise.all(trackPromises)).filter(
-          (t) => t !== null
+          (t) => t !== null,
         ) as Track[];
         setTracks(fetchedTracks);
       } catch (err) {
@@ -148,7 +153,7 @@ const FeaturedNFTs = () => {
                 tokenId={track.tokenId.toString()}
                 genre={
                   track.metadata?.attributes.find(
-                    (i) => i.trait_type === "genre"
+                    (i) => i.trait_type === "genre",
                   )?.value ?? ""
                 }
                 price={`${parseBigInt(track.price)}`}

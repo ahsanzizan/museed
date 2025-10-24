@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Music, Wallet } from "lucide-react";
 import { ConnectWallet } from "./ConnectWallet";
+import Image from "next/image";
 
 const Navbar = () => {
   return (
@@ -9,7 +10,8 @@ const Navbar = () => {
       <div className="container mx-auhref px-6 py-4">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <Music className="h-8 w-8 text-primary" />
+            {/*<Music className="h-8 w-8 text-primary" />*/}
+            <Image src={"/logo.png"} width={32} height={32} alt="logo" />
             <span className="text-2xl font-bold gradient-text">Museed</span>
           </Link>
 

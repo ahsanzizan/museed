@@ -23,6 +23,8 @@ const Marketplace = () => {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState<string>("");
+  const [genre, setGenre] = useState<string>("");
 
   useEffect(() => {
     const fetchTracks = async () => {
@@ -33,24 +35,30 @@ const Marketplace = () => {
         setError(null);
 
         // Get all TrackMinted events
-        const logs = await publicClient.getLogs({
-          address: MUSEED_CONTRACT_ADDRESS as `0x${string}`,
-          event: {
-            type: "event",
-            name: "TrackMinted",
-            inputs: [
-              { type: "uint256", indexed: true, name: "tokenId" },
-              { type: "address", indexed: true, name: "artist" },
-              { type: "uint256", indexed: false, name: "price" },
-            ],
-          },
-          fromBlock: 9466275n,
-          toBlock: 9466280n,
-        });
+        // const logs = await publicClient.getLogs({
+        //   address: MUSEED_CONTRACT_ADDRESS as `0x${string}`,
+        //   event: {
+        //     type: "event",
+        //     name: "TrackMinted",
+        //     inputs: [
+        //       { type: "uint256", indexed: true, name: "tokenId" },
+        //       { type: "address", indexed: true, name: "artist" },
+        //       { type: "uint256", indexed: false, name: "price" },
+        //     ],
+        //   },
+        //   fromBlock: 9466275n,
+        //   toBlock: 9466280n,
+        // });
+
+        const tracki: { nfts: { id: { tokenId: string } }[] } = await (
+          await fetch(
+            `${process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL}/getNFTsForCollection?contractAddress=${MUSEED_CONTRACT_ADDRESS}`,
+          )
+        ).json();
 
         // Fetch details for each track
-        const trackPromises = logs.map(async (log) => {
-          const tokenId = Number((log.topics[1] || "0x0").slice(0, 66));
+        const trackPromises = tracki.nfts.map(async (log) => {
+          const tokenId = log.id.tokenId;
 
           try {
             const result = await publicClient.readContract({
@@ -64,7 +72,7 @@ const Marketplace = () => {
               string,
               bigint,
               string,
-              string
+              string,
             ];
 
             // Fetch metadata from IPFS
@@ -89,15 +97,15 @@ const Marketplace = () => {
             console.error(
               "Failed to fetch track details for token",
               tokenId,
-              err
+              err,
             );
             return null;
           }
         });
 
         const fetchedTracks = (await Promise.all(trackPromises)).filter(
-          (t) => t !== null
-        ) as Track[];
+          (t) => t !== null,
+        ) as unknown as Track[];
         setTracks(fetchedTracks);
       } catch (err) {
         const errorMessage =
@@ -132,9 +140,10 @@ const Marketplace = () => {
               <Input
                 placeholder="Search tracks or artists..."
                 className="pl-10 bg-card/50 border-border/50"
+                onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <Select defaultValue="all">
+            <Select defaultValue="all" onValueChange={(e) => setGenre(e)}>
               <SelectTrigger className="w-full md:w-[180px] bg-card/50 border-border/50">
                 <SelectValue placeholder="Genre" />
               </SelectTrigger>
@@ -147,7 +156,7 @@ const Marketplace = () => {
                 <SelectItem value="synthwave">Synthwave</SelectItem>
               </SelectContent>
             </Select>
-            <Select defaultValue="recent">
+            {/*<Select defaultValue="recent">
               <SelectTrigger className="w-full md:w-[180px] bg-card/50 border-border/50">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
@@ -157,7 +166,7 @@ const Marketplace = () => {
                 <SelectItem value="price-high">Price: High to Low</SelectItem>
                 <SelectItem value="popular">Most Popular</SelectItem>
               </SelectContent>
-            </Select>
+            </Select>*/}
           </div>
 
           {/* NFT Grid */}
@@ -171,25 +180,39 @@ const Marketplace = () => {
                 {error}
               </div>
             ) : (
-              tracks.map((track) => (
-                <NFTCard
-                  key={track.tokenId}
-                  artist={track.artist}
-                  coverUrl={
-                    track.metadata?.image
-                      ? getIPFSUrl(track.metadata.image)
-                      : "/music-cover.jpg"
-                  }
-                  tokenId={track.tokenId.toString()}
-                  genre={
-                    track.metadata?.attributes.find(
-                      (i) => i.trait_type === "genre"
-                    )?.value ?? ""
-                  }
-                  price={`${parseBigInt(track.price)}`}
-                  title={track.metadata?.name ?? "awikwok"}
-                />
-              ))
+              tracks
+                .filter(
+                  (e) =>
+                    (e.metadata?.name.includes(search ?? "") ||
+                      e.artist.includes(search ?? "") ||
+                      e.tokenId.toString().includes(search ?? "")) &&
+                    e.metadata?.attributes
+                      .filter((e) => e.trait_type === "Genre")[0]
+                      [
+                        "value"
+                      ].includes(genre === "all" ? "" : genre.toLowerCase()),
+                )
+                .map((track) => (
+                  <NFTCard
+                    key={track.tokenId}
+                    artist={track.artist}
+                    coverUrl={
+                      track.metadata?.image
+                        ? getIPFSUrl(track.metadata.image)
+                        : "/music-cover.jpg"
+                    }
+                    tokenId={`${(track.tokenId as unknown as string).slice(
+                      -3,
+                    )}`}
+                    genre={
+                      track.metadata?.attributes.find(
+                        (i) => i.trait_type === "genre",
+                      )?.value ?? ""
+                    }
+                    price={`${parseBigInt(track.price)}`}
+                    title={track.metadata?.name ?? "awikwok"}
+                  />
+                ))
             )}
           </div>
         </div>
