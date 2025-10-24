@@ -46,7 +46,7 @@ const NFTCard = ({
 
       <CardContent className="p-4">
         <h3 className="font-semibold text-lg mb-1 truncate">{title}</h3>
-        <p className="text-sm text-muted-foreground mb-3">{artist}</p>
+        <p className="text-sm text-muted-foreground mb-3">{`${artist.slice(0, 5)}...${artist.slice(-4)}`}</p>
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs text-muted-foreground">Price</p>

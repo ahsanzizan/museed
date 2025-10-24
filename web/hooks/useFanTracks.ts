@@ -5,7 +5,7 @@ import { useAccount, usePublicClient } from "wagmi";
 import { MUSEED_CONTRACT_ADDRESS } from "@/lib/config";
 import MuseedNFTABI from "@/lib/MuseedNFT.json";
 import { getIPFSUrl } from "@/lib/pinata";
-import type { Track, TrackMetadata } from "@/types";
+import type { NftApiResponse, Track, TrackMetadata } from "@/types";
 
 export function useFanTracks() {
   const { address } = useAccount();
@@ -24,31 +24,37 @@ export function useFanTracks() {
         setError(null);
 
         // Get all TrackPurchased events where buyer is the current user
-        const logs = await publicClient.getLogs({
-          address: MUSEED_CONTRACT_ADDRESS as `0x${string}`,
-          event: {
-            type: "event",
-            name: "TrackPurchased",
-            inputs: [
-              { type: "uint256", indexed: true, name: "tokenId" },
-              { type: "address", indexed: true, name: "buyer" },
-              { type: "uint256", indexed: false, name: "price" },
-            ],
-          },
-          fromBlock: 9466398n,
-          toBlock: 9466403n,
-        });
+        // const logs = await publicClient.getLogs({
+        //   address: MUSEED_CONTRACT_ADDRESS as `0x${string}`,
+        //   event: {
+        //     type: "event",
+        //     name: "TrackPurchased",
+        //     inputs: [
+        //       { type: "uint256", indexed: true, name: "tokenId" },
+        //       { type: "address", indexed: true, name: "buyer" },
+        //       { type: "uint256", indexed: false, name: "price" },
+        //     ],
+        //   },
+        //   fromBlock: 9466398n,
+        //   toBlock: 9466403n,
+        // });
+        //
+        const tracki: NftApiResponse = await (
+          await fetch(
+            `${process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL}/getNFTs?owner=${address}&contractAddresses=[${MUSEED_CONTRACT_ADDRESS}]`,
+          )
+        ).json();
 
         // Filter for current user
-        const userLogs = logs.filter((log) => {
-          const buyer = `0x${log.topics[2]?.slice(-40)}`;
-          return buyer.toLowerCase() === address.toLowerCase();
-        });
+        // const userLogs = tracki.nfts.filter((log) => {
+        //   const buyer = `0x${log..slice(-40)}`;
+        //   return buyer.toLowerCase() === address.toLowerCase();
+        // });
 
         // Fetch details for each track
-        const trackPromises = userLogs.map(async (log) => {
-          const tokenId = Number((log.topics[1] || "0x0").slice(0, 66));
-          const price = BigInt(log.data || "0");
+        const trackPromises = tracki.ownedNfts.map(async (log) => {
+          const tokenId = Number((log.id.tokenId || "0x0").slice(0, 66));
+          // const price = BigInt(log.metadata. || "0");
 
           try {
             const result = await publicClient.readContract({
@@ -62,7 +68,7 @@ export function useFanTracks() {
               string,
               bigint,
               string,
-              string
+              string,
             ];
 
             // Fetch metadata from IPFS
@@ -82,20 +88,20 @@ export function useFanTracks() {
               currentOwner,
               uri,
               metadata,
-              purchasePrice: price,
+              purchasePrice: trackPrice,
             };
           } catch (err) {
             console.error(
               "Failed to fetch track details for token",
               tokenId,
-              err
+              err,
             );
             return null;
           }
         });
 
         const fetchedTracks = (await Promise.all(trackPromises)).filter(
-          (t) => t !== null
+          (t) => t !== null,
         ) as (Track & {
           purchasePrice: bigint;
         })[];
@@ -104,7 +110,7 @@ export function useFanTracks() {
         // Calculate total spent
         const total = fetchedTracks.reduce(
           (sum, track) => sum + track.purchasePrice,
-          0n
+          0n,
         );
         setTotalSpent(total);
       } catch (err) {
